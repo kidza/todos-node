@@ -1,0 +1,27 @@
+{
+  "name": "todos-node",
+  "version": "1.0.0",
+  "description": "server side for todos",
+  "main": "app.js",
+  "dependencies": {
+    "body-parser": "^1.17.1",
+    "cors": "^2.8.1",
+    "express": "^4.15.2",
+    "jsonapi-serializer": "^3.4.2",
+    "mongodb": "^2.2.24"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kidza/todos-node.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kidza/todos-node/issues"
+  },
+  "homepage": "https://github.com/kidza/todos-node#readme"
+}
