@@ -1,3 +1,4 @@
+var mongodb = require('mongodb');
 var MongoClient = require('mongodb').MongoClient;
 var express = require('express');
 var cors = require('cors');
@@ -34,25 +35,34 @@ app.get('/todos', function(req, res) {
 
 app.post('/todos', function(req, res) {
     MongoClient.connect(url, function(err, db) {
-        console.log('save todos request');
-        console.log(req.body);
         new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
-            console.log(todo);
             db.collection('todos').insert(todo, function(err, records) {
-                console.log(records);
-                res.send(TodoSerializer.serialize(records.ops));
+                res.send(TodoSerializer.serialize(records.ops[0]));
                 db.close();
             });
         });
     });
 });
 
-// app.delete('/todos', function(req, res)) {
-// 	MongoClient.connect(url, function(err, db) {
+app.delete('/todos/:todoId', function(req, res) {
+    MongoClient.connect(url, function(err, db) {
+        db.collection('todos').deleteOne({ _id: new mongodb.ObjectID(req.params.todoId) }, function(err, results) {
+            res.send(JSON.stringify(null));
+            db.close();
+        });
+    });
+});
 
-// 	});
-// });
-
+app.patch('/todos/:todoId', function(req, res) {
+    MongoClient.connect(url, function(err, db) {
+        new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
+            db.collection('todos').update({ _id: new mongodb.ObjectID(req.params.todoId) }, todo, function(err, results) {
+                res.send(JSON.stringify(null));
+                db.close();
+            });
+        });
+    });
+});
 
 var server = app.listen(8081, function() {
     var host = server.address().address
