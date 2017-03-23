@@ -1,8 +1,14 @@
-
 var mongodb = require('mongodb');
 var MongoClient = require('mongodb').MongoClient;
 
-var url = 'mongodb://localhost:27017/myproject';
+var mongoose = require('mongoose');
+var configParams = require('../config.js');
+
+mongoose.Promise = global.Promise;
+mongoose.connect(configParams.dbUrl);
+// var db = mongoose.connection;
+
+TodoModel = require('../model/todo.js');
 
 var JSONAPISerializer = require('jsonapi-serializer').Serializer;
 var JSONAPIDeserializer = require('jsonapi-serializer').Deserializer;
@@ -14,43 +20,29 @@ var TodoSerializer = new JSONAPISerializer('todo', {
 });
 
 exports.listTodo = function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        console.log('list todos request');
-
-        db.collection('todos').find({}).toArray(function(err, items) {
-            res.send(TodoSerializer.serialize(items));
-            db.close();
-        });
+    TodoModel.find({}).exec(function(err, items) {
+        res.send(TodoSerializer.serialize(items));
     });
 };
 
 exports.insertTodo = function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
-            db.collection('todos').insert(todo, function(err, records) {
-                res.send(TodoSerializer.serialize(records.ops[0]));
-                db.close();
-            });
+    new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
+        new TodoModel(todo).save(function(err, todoSaved) {
+            res.send(TodoSerializer.serialize(todoSaved));
         });
     });
 };
 
 exports.deleteTodo = function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        db.collection('todos').deleteOne({ _id: new mongodb.ObjectID(req.params.todoId) }, function(err, results) {
-            res.send(JSON.stringify(null));
-            db.close();
-        });
+    TodoModel.findByIdAndRemove(req.params.todoId, function(err, todo) {
+        res.send(JSON.stringify(null));
     });
 };
 
 exports.updateTodo = function(req, res) {
-    MongoClient.connect(url, function(err, db) {
-        new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
-            db.collection('todos').update({ _id: new mongodb.ObjectID(req.params.todoId) }, todo, function(err, results) {
-                res.send(JSON.stringify(null));
-                db.close();
-            });
-        });
+    new JSONAPIDeserializer().deserialize(req.body, function(err, todo) {
+	    TodoModel.findByIdAndUpdate(req.params.todoId, todo, function(err, items) {
+	        res.send(JSON.stringify(null));
+	    });
     });
 };
